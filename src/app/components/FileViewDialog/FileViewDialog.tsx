@@ -1,4 +1,3 @@
-"use client";
 
 import React, { useMemo, useCallback } from "react";
 import { FileText, Copy, Download } from "lucide-react";

@@ -1,4 +1,3 @@
-"use client";
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";

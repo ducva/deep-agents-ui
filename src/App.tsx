@@ -1,17 +1,18 @@
-"use client";
-
-import React, { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQueryState } from "nuqs";
-import { ChatInterface } from "./components/ChatInterface/ChatInterface";
-import { TasksFilesSidebar } from "./components/TasksFilesSidebar/TasksFilesSidebar";
-import { SubAgentPanel } from "./components/SubAgentPanel/SubAgentPanel";
-import { FileViewDialog } from "./components/FileViewDialog/FileViewDialog";
+import { AuthProvider } from "@/providers/Auth";
+import { NuqsAdapter } from "nuqs/adapters/react";
+import { Toaster } from "sonner";
+import { ChatInterface } from "@/app/components/ChatInterface/ChatInterface";
+import { TasksFilesSidebar } from "@/app/components/TasksFilesSidebar/TasksFilesSidebar";
+import { SubAgentPanel } from "@/app/components/SubAgentPanel/SubAgentPanel";
+import { FileViewDialog } from "@/app/components/FileViewDialog/FileViewDialog";
 import { createClient } from "@/lib/client";
 import { useAuthContext } from "@/providers/Auth";
-import type { SubAgent, FileItem, TodoItem } from "./types/types";
-import styles from "./page.module.scss";
+import type { SubAgent, FileItem, TodoItem } from "@/app/types/types";
+import styles from "@/app/page.module.scss";
 
-export default function HomePage() {
+function HomePage() {
   const { session } = useAuthContext();
   const [threadId, setThreadId] = useQueryState("threadId");
   const [selectedSubAgent, setSelectedSubAgent] = useState<SubAgent | null>(
@@ -36,36 +37,39 @@ export default function HomePage() {
         setIsLoadingThreadState(false);
         return;
       }
+
       setIsLoadingThreadState(true);
       try {
         const client = createClient(session.accessToken);
-        const state = await client.threads.getState(threadId);
+        const threadState = await client.threads.getState(threadId);
 
-        if (state.values) {
-          const currentState = state.values as {
-            todos?: TodoItem[];
-            files?: Record<string, string>;
-          };
-          setTodos(currentState.todos || []);
-          setFiles(currentState.files || {});
+        if (threadState?.values) {
+          const { todos: threadTodos = [], files: threadFiles = {} } =
+            threadState.values as any;
+          setTodos(threadTodos);
+          setFiles(threadFiles);
         }
       } catch (error) {
         console.error("Failed to fetch thread state:", error);
-        setTodos([]);
-        setFiles({});
       } finally {
         setIsLoadingThreadState(false);
       }
     };
+
     fetchThreadState();
   }, [threadId, session?.accessToken]);
 
   const handleNewThread = useCallback(() => {
     setThreadId(null);
     setSelectedSubAgent(null);
+    setSelectedFile(null);
     setTodos([]);
     setFiles({});
   }, [setThreadId]);
+
+  if (!session) {
+    return null; // AuthProvider should handle redirecting
+  }
 
   return (
     <div className={styles.container}>
@@ -103,3 +107,16 @@ export default function HomePage() {
     </div>
   );
 }
+
+function App() {
+  return (
+    <AuthProvider>
+      <NuqsAdapter>
+        <HomePage />
+        <Toaster position="top-right" />
+      </NuqsAdapter>
+    </AuthProvider>
+  );
+}
+
+export default App;

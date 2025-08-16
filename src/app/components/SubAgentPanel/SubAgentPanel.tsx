@@ -1,4 +1,3 @@
-"use client";
 
 import React, { useMemo } from "react";
 import { X, Bot, CheckCircle, AlertCircle, Clock, Loader } from "lucide-react";
