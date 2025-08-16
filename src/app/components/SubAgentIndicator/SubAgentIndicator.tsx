@@ -1,4 +1,3 @@
-"use client";
 
 import React from "react";
 import { CheckCircle, AlertCircle, Clock, Loader } from "lucide-react";
