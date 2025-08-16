@@ -23,7 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Initialize with a default token or implement your auth logic
     setSession({
-      accessToken: process.env.NEXT_PUBLIC_LANGSMITH_API_KEY || "demo-token",
+      accessToken: import.meta.env.VITE_LANGSMITH_API_KEY || "demo-token",
     });
   }, []);
 
