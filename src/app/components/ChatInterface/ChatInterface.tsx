@@ -13,6 +13,7 @@ import { Send, Bot, LoaderCircle, SquarePen, History } from "lucide-react";
 import { ChatMessage } from "../ChatMessage/ChatMessage";
 import { ThreadHistorySidebar } from "../ThreadHistorySidebar/ThreadHistorySidebar";
 import { AIErrorBoundary } from "../AIErrorBoundary/AIErrorBoundary";
+import { UserMenu } from "../UserMenu/UserMenu";
 import type { SubAgent, TodoItem, ToolCall } from "../../types/types";
 import { useChat, useAIChat } from "../../hooks/useChat";
 import { AISDKError } from "ai";
@@ -218,6 +219,7 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
             <Button variant="ghost" size="icon" onClick={toggleThreadHistory}>
               <History size={20} />
             </Button>
+            <UserMenu />
           </div>
         </div>
         <div className={styles.content}>

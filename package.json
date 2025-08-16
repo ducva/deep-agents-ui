@@ -9,6 +9,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.4.0",
     "@langchain/core": "^0.3.68",
     "@langchain/langgraph-sdk": "^0.0.105",
     "@radix-ui/react-dialog": "^1.1.14",

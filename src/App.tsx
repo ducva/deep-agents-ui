@@ -12,8 +12,51 @@ import { useAuthContext } from "@/providers/Auth";
 import type { SubAgent, FileItem, TodoItem } from "@/app/types/types";
 import styles from "@/app/page.module.scss";
 
+function LoginPage() {
+  const { login, error } = useAuthContext();
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="max-w-md w-full space-y-8 p-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold">Deep Agents UI</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Please sign in to continue
+          </p>
+        </div>
+        
+        <div className="space-y-4">
+          <button
+            onClick={login}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          >
+            Sign in with Auth0
+          </button>
+          
+          {error && (
+            <div className="text-sm text-red-600 text-center">
+              {error.message}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LoadingPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+        <p className="mt-2 text-sm text-muted-foreground">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
 function HomePage() {
-  const { session } = useAuthContext();
+  const { session, isLoading, error } = useAuthContext();
   const [threadId, setThreadId] = useQueryState("threadId");
   const [selectedSubAgent, setSelectedSubAgent] = useState<SubAgent | null>(
     null,
@@ -67,8 +110,23 @@ function HomePage() {
     setFiles({});
   }, [setThreadId]);
 
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h1 className="text-xl font-semibold text-red-600">Authentication Error</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!session) {
-    return null; // AuthProvider should handle redirecting
+    return <LoginPage />;
   }
 
   return (
