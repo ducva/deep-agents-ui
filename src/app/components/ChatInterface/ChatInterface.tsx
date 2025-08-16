@@ -12,8 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Send, Bot, LoaderCircle, SquarePen, History } from "lucide-react";
 import { ChatMessage } from "../ChatMessage/ChatMessage";
 import { ThreadHistorySidebar } from "../ThreadHistorySidebar/ThreadHistorySidebar";
+import { AIErrorBoundary } from "../AIErrorBoundary/AIErrorBoundary";
 import type { SubAgent, TodoItem, ToolCall } from "../../types/types";
-import { useChat } from "../../hooks/useChat";
+import { useChat, useAIChat } from "../../hooks/useChat";
+import { AISDKError } from "ai";
 import styles from "./ChatInterface.module.scss";
 import { Message } from "@langchain/langgraph-sdk";
 import { extractStringFromMessageContent } from "../../utils/utils";
@@ -46,12 +48,29 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
     const [isThreadHistoryOpen, setIsThreadHistoryOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const { messages, isLoading, sendMessage, stopStream } = useChat(
-      threadId,
-      setThreadId,
-      onTodosUpdate,
-      onFilesUpdate,
-    );
+    // Use AI SDK enhanced features if enabled via environment variable
+    const useEnhancedAI = process.env.NODE_ENV === 'development' || 
+                          import.meta.env.VITE_ENABLE_AI_SDK === 'true';
+    
+    // Always call both hooks to avoid conditional hook issues
+    const originalChatResult = useChat(threadId, setThreadId, onTodosUpdate, onFilesUpdate);
+    const enhancedChatResult = useAIChat(threadId, setThreadId, onTodosUpdate, onFilesUpdate);
+    
+    // Use enhanced version if enabled, otherwise use original
+    const chatHookResult = useEnhancedAI ? enhancedChatResult : originalChatResult;
+    
+    const { 
+      messages, 
+      isLoading, 
+      sendMessage, 
+      stopStream
+    } = chatHookResult;
+    
+    // Enhanced AI SDK features (only available when using useAIChat)
+    const error = ('error' in chatHookResult ? chatHookResult.error : null) as AISDKError | null;
+    const retry = ('retry' in chatHookResult ? chatHookResult.retry : undefined) as (() => void) | undefined;
+    const canRetry = ('canRetry' in chatHookResult ? chatHookResult.canRetry : false) as boolean;
+    const retryCount = ('retryCount' in chatHookResult ? chatHookResult.retryCount : 0) as number;
 
     useEffect(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -241,6 +260,19 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
             </div>
           </div>
         </div>
+        
+        {/* AI SDK Enhanced Error Handling */}
+        {useEnhancedAI && (
+          <AIErrorBoundary
+            error={error}
+            onRetry={retry}
+            onDismiss={() => {/* could add dismissal logic */}}
+            canRetry={canRetry}
+            retryCount={retryCount}
+            maxRetries={3}
+          />
+        )}
+        
         <form onSubmit={handleSubmit} className={styles.inputForm}>
           <Input
             value={input}

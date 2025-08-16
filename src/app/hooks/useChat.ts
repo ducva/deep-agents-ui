@@ -7,6 +7,9 @@ import type { TodoItem } from "../types/types";
 import { createClient } from "@/lib/client";
 import { useAuthContext } from "@/providers/Auth";
 
+// Re-export the enhanced AI SDK version
+export { useAIChat } from "./useAIChat";
+
 type StateType = {
   messages: Message[];
   todos: TodoItem[];
