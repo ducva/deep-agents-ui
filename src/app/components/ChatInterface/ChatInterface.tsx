@@ -347,7 +347,7 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
             <div className={styles.attachmentsArea}>
               {attachedFiles.map((file, index) => (
                 <div key={index} className={styles.attachmentChip}>
-                  <span className={styles.attachmentIcon}>📄</span>
+                  <span className={styles.attachmentIcon}><FileText size={16} aria-label="File attachment" /></span>
                   <span className={styles.attachmentName}>{file.name}</span>
                   <button
                     type="button"
