@@ -164,11 +164,103 @@
 
 .inputForm {
   display: flex;
-  gap: $spacing-sm;
+  flex-direction: column;
+  gap: $spacing-xs;
   padding: $spacing-md $spacing-lg;
   border-top: 1px solid var(--color-border);
   background-color: var(--color-background);
   flex-shrink: 0;
+}
+
+.attachmentsArea {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.attachmentChip {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-full;
+  padding: $spacing-xs $spacing-sm;
+  font-size: $font-size-sm;
+  max-width: 200px;
+}
+
+.attachmentIcon {
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.attachmentName {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-text-primary);
+}
+
+.removeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  
+  &:hover {
+    background-color: var(--color-border-light);
+    color: var(--color-text-primary);
+  }
+}
+
+.linkInputArea {
+  display: flex;
+  gap: $spacing-xs;
+  align-items: center;
+}
+
+.linkInput {
+  flex: 1;
+}
+
+.addLinkButton {
+  flex-shrink: 0;
+}
+
+.cancelLinkButton {
+  flex-shrink: 0;
+}
+
+.mainInputArea {
+  display: flex;
+  gap: $spacing-xs;
+  align-items: center;
+}
+
+.attachButton,
+.linkButton {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  
+  &:hover:not(:disabled) {
+    color: var(--color-text-primary);
+    background-color: var(--color-border-light);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+  }
 }
 
 .input {
