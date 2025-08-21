@@ -13,7 +13,7 @@ import type { SubAgent, FileItem, TodoItem } from "@/app/types/types";
 import styles from "@/app/page.module.scss";
 
 function LoginPage() {
-  const { login, error } = useAuthContext();
+  const { login, error, authProvider } = useAuthContext();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -23,6 +23,11 @@ function LoginPage() {
           <p className="mt-2 text-sm text-muted-foreground">
             Please sign in to continue
           </p>
+          {import.meta.env.DEV && (
+            <p className="mt-1 text-xs text-blue-600">
+              {authProvider === 'auth0' ? 'Auth0 Configuration Active' : 'Development Mode'}
+            </p>
+          )}
         </div>
         
         <div className="space-y-4">
@@ -30,12 +35,28 @@ function LoginPage() {
             onClick={login}
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           >
-            Sign in with Auth0
+            {authProvider === 'auth0' ? 'Sign in with Auth0' : 'Sign in (Development)'}
           </button>
           
           {error && (
             <div className="text-sm text-red-600 text-center">
-              {error.message}
+              <p className="font-medium">Authentication Error</p>
+              <p className="mt-1">{error.message}</p>
+              {import.meta.env.DEV && (
+                <p className="mt-2 text-xs text-gray-500">
+                  Check your Auth0 configuration or disable VITE_FORCE_AUTH0_LOGIN for development mode
+                </p>
+              )}
+            </div>
+          )}
+
+          {import.meta.env.DEV && authProvider === 'auth0' && (
+            <div className="text-xs text-gray-500 text-center space-y-1">
+              <p>Development mode: Auth0 configured with domain:</p>
+              <p className="font-mono bg-gray-100 px-2 py-1 rounded">
+                {import.meta.env.VITE_AUTH0_DOMAIN}
+              </p>
+              <p>Set <span className="font-mono">VITE_FORCE_AUTH0_LOGIN=false</span> to use development fallback</p>
             </div>
           )}
         </div>
