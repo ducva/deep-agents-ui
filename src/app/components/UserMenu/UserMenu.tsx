@@ -4,7 +4,7 @@ import { useAuthContext } from "@/providers/Auth";
 import { Button } from "@/components/ui/button";
 
 export function UserMenu() {
-  const { session, logout } = useAuthContext();
+  const { session, logout, authProvider } = useAuthContext();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -36,6 +36,24 @@ export function UserMenu() {
     .toUpperCase()
     .slice(0, 2);
 
+  const getSessionStatusText = () => {
+    if (session.isAuth0) {
+      return "Auth0 Session";
+    } else if (session.isDevelopment) {
+      return "Development Session";
+    }
+    return "Session";
+  };
+
+  const getSessionStatusColor = () => {
+    if (session.isAuth0) {
+      return "text-green-600";
+    } else if (session.isDevelopment) {
+      return "text-yellow-600";
+    }
+    return "text-gray-600";
+  };
+
   return (
     <div className="relative" ref={menuRef}>
       <Button
@@ -55,10 +73,12 @@ export function UserMenu() {
             {userInitials}
           </div>
         )}
+        {/* Add a small indicator for session type */}
+        <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${session.isAuth0 ? 'bg-green-500' : 'bg-yellow-500'}`} />
       </Button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-56 bg-background border rounded-lg shadow-lg z-50">
+        <div className="absolute right-0 top-full mt-2 w-64 bg-background border rounded-lg shadow-lg z-50">
           <div className="px-4 py-3 border-b">
             <p className="text-sm font-medium truncate">{displayName}</p>
             {session.user?.email && (
@@ -66,6 +86,9 @@ export function UserMenu() {
                 {session.user.email}
               </p>
             )}
+            <p className={`text-xs mt-1 font-medium ${getSessionStatusColor()}`}>
+              {getSessionStatusText()}
+            </p>
           </div>
           
           <div className="py-1">

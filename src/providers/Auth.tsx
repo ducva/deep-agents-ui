@@ -11,6 +11,8 @@ import { Auth0Provider, useAuth0, User } from "@auth0/auth0-react";
 interface AuthSession {
   accessToken: string;
   user?: User;
+  isAuth0?: boolean; // Flag to indicate if this is an Auth0 session
+  isDevelopment?: boolean; // Flag to indicate if this is a development session
 }
 
 interface AuthContextType {
@@ -19,6 +21,7 @@ interface AuthContextType {
   error: Error | null;
   login: () => void;
   logout: () => void;
+  authProvider: 'auth0' | 'development' | 'none';
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -27,6 +30,7 @@ const AuthContext = createContext<AuthContextType>({
   error: null,
   login: () => {},
   logout: () => {},
+  authProvider: 'none',
 });
 
 function AuthProviderInner({ children }: { children: ReactNode }) {
@@ -51,6 +55,8 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
           setSession({
             accessToken: token,
             user: user || undefined,
+            isAuth0: true,
+            isDevelopment: false,
           });
         } catch (error) {
           console.warn("Failed to get Auth0 token, falling back to env token:", error);
@@ -59,13 +65,22 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
           setSession({
             accessToken: fallbackToken,
             user: user || undefined,
+            isAuth0: false,
+            isDevelopment: true,
           });
         }
       } else if (!isAuthenticated && !isLoading) {
-        // For development, allow fallback to env token
-        if (import.meta.env.DEV && import.meta.env.VITE_LANGSMITH_API_KEY) {
+        // For development, allow fallback to env token ONLY if explicitly allowed
+        const allowDevFallback = import.meta.env.DEV && 
+                                import.meta.env.VITE_LANGSMITH_API_KEY &&
+                                import.meta.env.VITE_FORCE_AUTH0_LOGIN !== 'true';
+        
+        if (allowDevFallback) {
+          console.warn("Auth0 not authenticated, using development fallback token");
           setSession({
-            accessToken: import.meta.env.VITE_LANGSMITH_API_KEY,
+            accessToken: import.meta.env.VITE_LANGSMITH_API_KEY!,
+            isAuth0: false,
+            isDevelopment: true,
           });
         } else {
           setSession(null);
@@ -94,7 +109,8 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
       isLoading, 
       error: error || null, 
       login, 
-      logout 
+      logout,
+      authProvider: 'auth0'
     }}>
       {children}
     </AuthContext.Provider>
@@ -137,6 +153,8 @@ function DevelopmentAuthProvider({ children }: { children: ReactNode }) {
     if (import.meta.env.VITE_LANGSMITH_API_KEY) {
       setSession({
         accessToken: import.meta.env.VITE_LANGSMITH_API_KEY,
+        isAuth0: false,
+        isDevelopment: true,
       });
     } else {
       // No session - this will show the login page
@@ -148,6 +166,8 @@ function DevelopmentAuthProvider({ children }: { children: ReactNode }) {
     console.warn("Auth0 not configured, simulating login with demo token");
     setSession({
       accessToken: "demo-token",
+      isAuth0: false,
+      isDevelopment: true,
     });
   };
 
@@ -162,7 +182,8 @@ function DevelopmentAuthProvider({ children }: { children: ReactNode }) {
       isLoading: false, 
       error: null,
       login,
-      logout
+      logout,
+      authProvider: 'development'
     }}>
       {children}
     </AuthContext.Provider>
