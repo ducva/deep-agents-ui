@@ -192,7 +192,12 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
       }
       setIsAgentDialogOpen(false);
       setSelectedAgentForConfirmation(null);
-    }, [selectedAgentForConfirmation, onNewThread]);
+        // Navigate to the new agent parameter using Next.js router
+        router.push(currentUrl.toString());
+      }
+      setIsAgentDialogOpen(false);
+      setSelectedAgentForConfirmation(null);
+    }, [selectedAgentForConfirmation, onNewThread, router]);
 
     const handleAgentCancel = useCallback(() => {
       setIsAgentDialogOpen(false);
