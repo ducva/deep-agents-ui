@@ -40,7 +40,12 @@ export function getAgentById(id: string): Agent | null {
 export function getCurrentAgent(): Agent {
   // Check URL parameters first
   const urlParams = new URLSearchParams(window.location.search);
-  const agentFromUrl = urlParams.get('agent');
+  // Check URL parameters first (only on client-side)
+  let agentFromUrl: string | null = null;
+  if (typeof window !== "undefined") {
+    const urlParams = new URLSearchParams(window.location.search);
+    agentFromUrl = urlParams.get('agent');
+  }
   
   if (agentFromUrl) {
     const agent = getAgentById(agentFromUrl);
