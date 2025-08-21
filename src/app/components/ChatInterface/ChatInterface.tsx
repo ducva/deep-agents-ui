@@ -360,7 +360,7 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
               ))}
               {attachedLinks.map((link, index) => (
                 <div key={index} className={styles.attachmentChip}>
-                  <span className={styles.attachmentIcon}>🔗</span>
+                  <span className={styles.attachmentIcon}><Link size={16} aria-label="Link attachment" /></span>
                   <span className={styles.attachmentName}>{link}</span>
                   <button
                     type="button"
