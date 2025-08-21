@@ -4,7 +4,7 @@ import { useAuthContext } from "@/providers/Auth";
 import { Button } from "@/components/ui/button";
 
 export function UserMenu() {
-  const { session, logout, authProvider } = useAuthContext();
+  const { session, logout } = useAuthContext();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
