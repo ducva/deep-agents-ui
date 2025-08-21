@@ -7,21 +7,21 @@ import React, {
   useEffect,
   FormEvent,
 } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Send, Bot, LoaderCircle, SquarePen, History, Paperclip, Link, X } from "lucide-react";
-import { ChatMessage } from "../ChatMessage/ChatMessage";
-import { ThreadHistorySidebar } from "../ThreadHistorySidebar/ThreadHistorySidebar";
-import { AIErrorBoundary } from "../AIErrorBoundary/AIErrorBoundary";
-import { UserMenu } from "../UserMenu/UserMenu";
-import { AgentSelector } from "../AgentSelector/AgentSelector";
-import { AgentConfirmationDialog } from "../AgentConfirmationDialog/AgentConfirmationDialog";
 import type { SubAgent, TodoItem, ToolCall, Agent } from "../../types/types";
 import { useChat, useAIChat } from "../../hooks/useChat";
 import { AISDKError } from "ai";
-import styles from "./ChatInterface.module.scss";
 import { Message } from "@langchain/langgraph-sdk";
 import { extractStringFromMessageContent } from "../../utils/utils";
+import { Bot, FileText, Link, LoaderCircle, Paperclip, Send, SquarePen, X, History } from "lucide-react";
+import { AgentSelector } from "../AgentSelector/AgentSelector";
+import { Button } from "@/components/ui/button";
+import { UserMenu } from "../UserMenu/UserMenu";
+import { ThreadHistorySidebar } from "../ThreadHistorySidebar/ThreadHistorySidebar";
+import { Input } from "@/components/ui/input";
+import { AgentConfirmationDialog } from "../AgentConfirmationDialog/AgentConfirmationDialog";
+import { AIErrorBoundary } from "../AIErrorBoundary/AIErrorBoundary";
+import { ChatMessage } from "../ChatMessage/ChatMessage";
+import styles from './ChatInterface.module.scss'
 
 interface ChatInterfaceProps {
   threadId: string | null;
@@ -192,12 +192,7 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
       }
       setIsAgentDialogOpen(false);
       setSelectedAgentForConfirmation(null);
-        // Navigate to the new agent parameter using Next.js router
-        router.push(currentUrl.toString());
-      }
-      setIsAgentDialogOpen(false);
-      setSelectedAgentForConfirmation(null);
-    }, [selectedAgentForConfirmation, onNewThread, router]);
+    }, [selectedAgentForConfirmation, onNewThread]);
 
     const handleAgentCancel = useCallback(() => {
       setIsAgentDialogOpen(false);
