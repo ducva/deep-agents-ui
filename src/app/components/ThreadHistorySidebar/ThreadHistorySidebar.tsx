@@ -3,7 +3,6 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, X } from "lucide-react";
-import { createClient } from "@/lib/client";
 import { useAuthContext } from "@/providers/Auth";
 import { getDeployment } from "@/lib/environment/deployments";
 import type { Thread } from "../../types/types";
@@ -25,52 +24,69 @@ export const ThreadHistorySidebar = React.memo<ThreadHistorySidebarProps>(
     const deployment = useMemo(() => getDeployment(), []);
 
     const fetchThreads = useCallback(async () => {
-      if (!deployment?.deploymentUrl || !session?.accessToken) return;
+      if (!deployment?.deploymentUrl || !deployment?.workspaceId || !deployment?.agentId || !session?.accessToken) return;
       setIsLoadingThreadHistory(true);
       try {
-        const client = createClient(session.accessToken);
-        const response = await client.threads.search({
-          limit: 30,
-          sortBy: "created_at",
-          sortOrder: "desc",
+        // Use new endpoint: GET /v20250505/{workspace_id}/agents/{agent_id}/run
+        const apiUrl = `${deployment.deploymentUrl}/v20250505/${deployment.workspaceId}/agents/${deployment.agentId}/run`;
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${session.accessToken}`,
+            'Content-Type': 'application/json',
+            'x-auth-scheme': 'langsmith',
+          },
         });
-        const threadList: Thread[] = response.map((thread: any) => {
-          let displayContent = `Thread ${thread.thread_id.slice(0, 8)}`;
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const runs = await response.json();
+        
+        // Map agent runs to Thread interface
+        const threadList: Thread[] = (Array.isArray(runs) ? runs : [runs]).map((run: any) => {
+          let displayContent = `Thread ${(run.thread_id || run.id || 'unknown').slice(0, 8)}`;
           try {
             if (
-              thread.values &&
-              typeof thread.values === "object" &&
-              "messages" in thread.values
+              run.values &&
+              typeof run.values === "object" &&
+              "messages" in run.values
             ) {
-              const messages = (thread.values as any).messages;
+              const messages = (run.values as any).messages;
               if (Array.isArray(messages) && messages.length > 0) {
                 displayContent = extractStringFromMessageContent(messages[0]);
               }
             }
+            // Try alternate structure if messages not found in values
+            else if (run.inputs && run.inputs.messages && Array.isArray(run.inputs.messages)) {
+              displayContent = extractStringFromMessageContent(run.inputs.messages[0]);
+            }
           } catch (error) {
             console.warn(
-              `Failed to get first message for thread ${thread.thread_id}:`,
+              `Failed to get first message for run ${run.thread_id || run.id}:`,
               error,
             );
           }
           return {
-            id: thread.thread_id,
+            id: run.thread_id || run.id || `run-${Date.now()}`,
             title: displayContent,
-            createdAt: new Date(thread.created_at),
-            updatedAt: new Date(thread.updated_at || thread.created_at),
+            createdAt: new Date(run.created_at || run.createdAt || Date.now()),
+            updatedAt: new Date(run.updated_at || run.updatedAt || run.created_at || run.createdAt || Date.now()),
           } as Thread;
         });
+        
         setThreads(
           threadList.sort(
             (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
           ),
         );
       } catch (error) {
-        console.error("Failed to fetch threads:", error);
+        console.error("Failed to fetch agent runs:", error);
       } finally {
         setIsLoadingThreadHistory(false);
       }
-    }, [deployment?.deploymentUrl, session?.accessToken]);
+    }, [deployment?.deploymentUrl, deployment?.workspaceId, deployment?.agentId, session?.accessToken]);
 
     useEffect(() => {
       fetchThreads();
