@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, LoaderCircle, SquarePen, History } from "lucide-react";
+import { Send, Bot, LoaderCircle, SquarePen, History, Paperclip, Link, X } from "lucide-react";
 import { ChatMessage } from "../ChatMessage/ChatMessage";
 import { ThreadHistorySidebar } from "../ThreadHistorySidebar/ThreadHistorySidebar";
 import { AIErrorBoundary } from "../AIErrorBoundary/AIErrorBoundary";
@@ -47,7 +47,12 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
   }) => {
     const [input, setInput] = useState("");
     const [isThreadHistoryOpen, setIsThreadHistoryOpen] = useState(false);
+    const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    const [attachedLinks, setAttachedLinks] = useState<string[]>([]);
+    const [linkInput, setLinkInput] = useState("");
+    const [showLinkInput, setShowLinkInput] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Use AI SDK enhanced features if enabled via environment variable
     const useEnhancedAI = process.env.NODE_ENV === 'development' || 
@@ -82,11 +87,64 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
         e.preventDefault();
         const messageText = input.trim();
         if (!messageText || isLoading) return;
-        sendMessage(messageText);
+        
+        // TODO: Handle attached files and links in the message
+        // For now, we'll include file names and links in the text message
+        let fullMessage = messageText;
+        
+        if (attachedFiles.length > 0) {
+          const fileNames = attachedFiles.map(file => file.name).join(', ');
+          fullMessage += `\n\nAttached files: ${fileNames}`;
+        }
+        
+        if (attachedLinks.length > 0) {
+          fullMessage += `\n\nAttached links: ${attachedLinks.join(', ')}`;
+        }
+        
+        sendMessage(fullMessage);
         setInput("");
+        setAttachedFiles([]);
+        setAttachedLinks([]);
+        setShowLinkInput(false);
+        setLinkInput("");
       },
-      [input, isLoading, sendMessage],
+      [input, isLoading, sendMessage, attachedFiles, attachedLinks],
     );
+
+    const handleFileUpload = useCallback(() => {
+      fileInputRef.current?.click();
+    }, []);
+
+    const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files) {
+        setAttachedFiles(prev => [...prev, ...Array.from(files)]);
+      }
+    }, []);
+
+    const handleRemoveFile = useCallback((index: number) => {
+      setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+    }, []);
+
+    const handleAddLink = useCallback(() => {
+      const trimmedLink = linkInput.trim();
+      if (trimmedLink && !attachedLinks.includes(trimmedLink)) {
+        setAttachedLinks(prev => [...prev, trimmedLink]);
+        setLinkInput("");
+        setShowLinkInput(false);
+      }
+    }, [linkInput, attachedLinks]);
+
+    const handleRemoveLink = useCallback((index: number) => {
+      setAttachedLinks(prev => prev.filter((_, i) => i !== index));
+    }, []);
+
+    const handleToggleLinkInput = useCallback(() => {
+      setShowLinkInput(prev => !prev);
+      if (!showLinkInput) {
+        setLinkInput("");
+      }
+    }, [showLinkInput]);
 
     const handleNewThread = useCallback(() => {
       // Cancel any ongoing thread when creating new thread
@@ -276,30 +334,133 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
         )}
         
         <form onSubmit={handleSubmit} className={styles.inputForm}>
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            disabled={isLoading}
-            className={styles.input}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            multiple
+            style={{ display: 'none' }}
           />
-          {isLoading ? (
+          
+          {/* Attachments area */}
+          {(attachedFiles.length > 0 || attachedLinks.length > 0) && (
+            <div className={styles.attachmentsArea}>
+              {attachedFiles.map((file, index) => (
+                <div key={index} className={styles.attachmentChip}>
+                  <span className={styles.attachmentIcon}>📄</span>
+                  <span className={styles.attachmentName}>{file.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFile(index)}
+                    className={styles.removeButton}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+              {attachedLinks.map((link, index) => (
+                <div key={index} className={styles.attachmentChip}>
+                  <span className={styles.attachmentIcon}>🔗</span>
+                  <span className={styles.attachmentName}>{link}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveLink(index)}
+                    className={styles.removeButton}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Link input area */}
+          {showLinkInput && (
+            <div className={styles.linkInputArea}>
+              <Input
+                value={linkInput}
+                onChange={(e) => setLinkInput(e.target.value)}
+                placeholder="Enter a link..."
+                className={styles.linkInput}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddLink();
+                  }
+                  if (e.key === 'Escape') {
+                    setShowLinkInput(false);
+                    setLinkInput("");
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                onClick={handleAddLink}
+                disabled={!linkInput.trim()}
+                size="sm"
+                className={styles.addLinkButton}
+              >
+                Add
+              </Button>
+              <Button
+                type="button"
+                onClick={handleToggleLinkInput}
+                variant="ghost"
+                size="sm"
+                className={styles.cancelLinkButton}
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+
+          {/* Main input area */}
+          <div className={styles.mainInputArea}>
             <Button
               type="button"
-              onClick={stopStream}
-              className={styles.stopButton}
+              onClick={handleFileUpload}
+              variant="ghost"
+              size="icon"
+              className={styles.attachButton}
+              disabled={isLoading}
             >
-              Stop
+              <Paperclip size={16} />
             </Button>
-          ) : (
             <Button
-              type="submit"
-              disabled={!input.trim()}
-              className={styles.sendButton}
+              type="button"
+              onClick={handleToggleLinkInput}
+              variant="ghost"
+              size="icon"
+              className={styles.linkButton}
+              disabled={isLoading}
             >
-              <Send size={16} />
+              <Link size={16} />
             </Button>
-          )}
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type your message..."
+              disabled={isLoading}
+              className={styles.input}
+            />
+            {isLoading ? (
+              <Button
+                type="button"
+                onClick={stopStream}
+                className={styles.stopButton}
+              >
+                Stop
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={!input.trim()}
+                className={styles.sendButton}
+              >
+                <Send size={16} />
+              </Button>
+            )}
+          </div>
         </form>
       </div>
     );
