@@ -14,7 +14,9 @@ import { ChatMessage } from "../ChatMessage/ChatMessage";
 import { ThreadHistorySidebar } from "../ThreadHistorySidebar/ThreadHistorySidebar";
 import { AIErrorBoundary } from "../AIErrorBoundary/AIErrorBoundary";
 import { UserMenu } from "../UserMenu/UserMenu";
-import type { SubAgent, TodoItem, ToolCall } from "../../types/types";
+import { AgentSelector } from "../AgentSelector/AgentSelector";
+import { AgentConfirmationDialog } from "../AgentConfirmationDialog/AgentConfirmationDialog";
+import type { SubAgent, TodoItem, ToolCall, Agent } from "../../types/types";
 import { useChat, useAIChat } from "../../hooks/useChat";
 import { AISDKError } from "ai";
 import styles from "./ChatInterface.module.scss";
@@ -51,6 +53,8 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
     const [attachedLinks, setAttachedLinks] = useState<string[]>([]);
     const [linkInput, setLinkInput] = useState("");
     const [showLinkInput, setShowLinkInput] = useState(false);
+    const [selectedAgentForConfirmation, setSelectedAgentForConfirmation] = useState<Agent | null>(null);
+    const [isAgentDialogOpen, setIsAgentDialogOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -167,6 +171,34 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
       setIsThreadHistoryOpen((prev) => !prev);
     }, []);
 
+    const handleAgentSelect = useCallback((agent: Agent) => {
+      setSelectedAgentForConfirmation(agent);
+      setIsAgentDialogOpen(true);
+    }, []);
+
+    const handleAgentConfirm = useCallback(() => {
+      if (selectedAgentForConfirmation) {
+        // Store the selected agent ID in environment
+        // In a real app, you might need to update server configuration
+        // For now, we'll update the environment variable and reload
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('agent', selectedAgentForConfirmation.id);
+        
+        // Clear existing state before switching
+        onNewThread();
+        
+        // Reload the page with the new agent parameter
+        window.location.href = currentUrl.toString();
+      }
+      setIsAgentDialogOpen(false);
+      setSelectedAgentForConfirmation(null);
+    }, [selectedAgentForConfirmation, onNewThread]);
+
+    const handleAgentCancel = useCallback(() => {
+      setIsAgentDialogOpen(false);
+      setSelectedAgentForConfirmation(null);
+    }, []);
+
     const hasMessages = messages.length > 0;
 
     const processedMessages = useMemo(() => {
@@ -266,6 +298,7 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
             <h1 className={styles.title}>Deep Agents</h1>
           </div>
           <div className={styles.headerRight}>
+            <AgentSelector onAgentSelect={handleAgentSelect} />
             <Button
               variant="ghost"
               size="icon"
@@ -462,6 +495,13 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
             )}
           </div>
         </form>
+        
+        <AgentConfirmationDialog
+          agent={selectedAgentForConfirmation}
+          isOpen={isAgentDialogOpen}
+          onConfirm={handleAgentConfirm}
+          onCancel={handleAgentCancel}
+        />
       </div>
     );
   },
