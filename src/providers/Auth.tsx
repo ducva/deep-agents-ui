@@ -132,18 +132,37 @@ function DevelopmentAuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(null);
 
   useEffect(() => {
-    setSession({
-      accessToken: import.meta.env.VITE_LANGSMITH_API_KEY || "demo-token",
-    });
+    // Only provide automatic session if LANGSMITH_API_KEY is available
+    // This allows testing the login page when it's not configured
+    if (import.meta.env.VITE_LANGSMITH_API_KEY) {
+      setSession({
+        accessToken: import.meta.env.VITE_LANGSMITH_API_KEY,
+      });
+    } else {
+      // No session - this will show the login page
+      setSession(null);
+    }
   }, []);
+
+  const login = () => {
+    console.warn("Auth0 not configured, simulating login with demo token");
+    setSession({
+      accessToken: "demo-token",
+    });
+  };
+
+  const logout = () => {
+    console.warn("Auth0 not configured, simulating logout");
+    setSession(null);
+  };
 
   return (
     <AuthContext.Provider value={{ 
       session, 
       isLoading: false, 
       error: null,
-      login: () => console.warn("Auth0 not configured"),
-      logout: () => console.warn("Auth0 not configured")
+      login,
+      logout
     }}>
       {children}
     </AuthContext.Provider>
