@@ -34,3 +34,10 @@ export interface Thread {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface Agent {
+  id: string;
+  name: string;
+  description: string;
+  deploymentUrl?: string;
+}
