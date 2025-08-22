@@ -10,7 +10,6 @@ import { FileViewDialog } from "@/app/components/FileViewDialog/FileViewDialog";
 import { createClient } from "@/lib/client";
 import { useAuthContext } from "@/providers/Auth";
 import type { SubAgent, FileItem, TodoItem } from "@/app/types/types";
-import styles from "@/app/page.module.scss";
 
 function LoginPage() {
   const { login, error, authProvider } = useAuthContext();
@@ -151,7 +150,7 @@ function HomePage() {
   }
 
   return (
-    <div className={styles.container}>
+    <div className="flex h-screen w-screen bg-surface overflow-hidden">
       <TasksFilesSidebar
         todos={todos}
         files={files}
@@ -159,7 +158,7 @@ function HomePage() {
         collapsed={sidebarCollapsed}
         onToggleCollapse={toggleSidebar}
       />
-      <div className={styles.mainContent}>
+      <div className="flex-1 flex min-w-0 relative">
         <ChatInterface
           threadId={threadId}
           selectedSubAgent={selectedSubAgent}
