@@ -48,7 +48,7 @@
     }
 
     &:disabled {
-      opacity: 0.5;
+      color: var(--color-text-tertiary);
       cursor: not-allowed;
     }
   }
@@ -259,7 +259,7 @@
   }
   
   &:disabled {
-    opacity: 0.5;
+    color: var(--color-text-tertiary);
   }
 }
 
@@ -278,7 +278,7 @@
   color: white;
 
   &:hover {
-    opacity: 0.9;
+    background-color: var(--color-error-hover, #dc2626);
   }
 }
 

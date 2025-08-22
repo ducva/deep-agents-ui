@@ -7,24 +7,24 @@
   }
 
   &::-webkit-scrollbar-track {
-    background: transparent;
+    background: var(--color-border-light);
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--color-border);
     border-radius: 4px;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.3);
+      background: var(--color-text-tertiary);
     }
   }
 
   @media (prefers-color-scheme: dark) {
     &::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2);
+      background: var(--color-text-tertiary);
 
       &:hover {
-        background: rgba(255, 255, 255, 0.3);
+        background: var(--color-text-secondary);
       }
     }
   }
@@ -130,7 +130,7 @@ a {
   transition: color $transition-base;
 
   &:hover {
-    opacity: 0.8;
+    color: var(--color-secondary);
   }
 }
 
@@ -154,7 +154,7 @@ pre {
 
   code {
     padding: 0;
-    background-color: transparent;
+    background-color: var(--color-surface);
   }
 }
 
