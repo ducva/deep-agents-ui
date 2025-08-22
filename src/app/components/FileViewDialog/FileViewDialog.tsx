@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { MarkdownContent } from "../MarkdownContent/MarkdownContent";
 import type { FileItem } from "../../types/types";
 import styles from "./FileViewDialog.module.scss";
@@ -124,7 +124,7 @@ export const FileViewDialog = React.memo<FileViewDialogProps>(
               ) : (
                 <SyntaxHighlighter
                   language={language}
-                  style={oneDark}
+                  style={oneLight}
                   customStyle={{
                     margin: 0,
                     borderRadius: "0.5rem",

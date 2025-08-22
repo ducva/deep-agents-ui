@@ -98,23 +98,3 @@
   word-break: break-all;
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .details {
-    background: #1f2937;
-    border-color: #374151;
-  }
-
-  .title {
-    color: #f9fafb;
-  }
-
-  .parameterKey {
-    color: #9ca3af;
-  }
-
-  .parameterValue {
-    color: #f9fafb;
-    background: #374151;
-  }
-}

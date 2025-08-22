@@ -3,7 +3,7 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import styles from "./MarkdownContent.module.scss";
 
 interface MarkdownContentProps {
@@ -22,7 +22,7 @@ export const MarkdownContent = React.memo<MarkdownContentProps>(
               const match = /language-(\w+)/.exec(className || "");
               return !inline && match ? (
                 <SyntaxHighlighter
-                  style={oneDark as any}
+                  style={oneLight as any}
                   language={match[1]}
                   PreTag="div"
                   className={styles.codeBlock}
