@@ -19,7 +19,16 @@ export const AgentSelector: React.FC<AgentSelectorProps> = ({ onAgentSelect }) =
   const { session } = useAuthContext();
   const [availableAgents, setAvailableAgents] = useState<Agent[]>(() => getAvailableAgents());
   const [isLoading, setIsLoading] = useState(false);
-  const currentAgent = getCurrentAgent();
+  const [selectedAgentId, setSelectedAgentId] = useState<string>(() => getCurrentAgent().id);
+
+  // Helper function to get agent ID from URL
+  const getAgentFromUrl = (): string | null => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('agent');
+    }
+    return null;
+  };
 
   useEffect(() => {
     const loadAgents = async () => {
@@ -33,6 +42,15 @@ export const AgentSelector: React.FC<AgentSelectorProps> = ({ onAgentSelect }) =
       try {
         const apiAgents = await fetchAgentsFromAPI(session.accessToken);
         setAvailableAgents(apiAgents);
+        
+        // After loading API agents, check if the URL agent parameter exists in the loaded agents
+        const urlAgent = getAgentFromUrl();
+        if (urlAgent) {
+          const foundAgent = apiAgents.find(agent => agent.id === urlAgent);
+          if (foundAgent) {
+            setSelectedAgentId(foundAgent.id);
+          }
+        }
       } catch (error) {
         console.error("Failed to load agents, using fallback:", error);
         setAvailableAgents(getAvailableAgents());
@@ -46,14 +64,20 @@ export const AgentSelector: React.FC<AgentSelectorProps> = ({ onAgentSelect }) =
 
   const handleAgentChange = (agentId: string) => {
     const agent = availableAgents.find(a => a.id === agentId);
-    if (agent && agent.id !== currentAgent.id) {
-      onAgentSelect(agent);
+    if (agent) {
+      setSelectedAgentId(agentId);
+      if (agent.id !== selectedAgentId) {
+        onAgentSelect(agent);
+      }
     }
   };
 
+  // Get current agent based on selected ID
+  const currentAgent = availableAgents.find(agent => agent.id === selectedAgentId) || availableAgents[0] || getCurrentAgent();
+
   return (
     <div className="flex items-center gap-2">
-      <Select onValueChange={handleAgentChange} defaultValue={currentAgent.id}>
+      <Select onValueChange={handleAgentChange} value={selectedAgentId}>
         <SelectTrigger className="w-[180px] h-10">
           <div className="flex items-center gap-2">
             {isLoading ? (
