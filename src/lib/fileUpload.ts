@@ -51,7 +51,7 @@ export async function uploadFileToPresignedUrl(
   mimeType?: string
 ): Promise<void> {
   const response = await fetch(presignedUrl, {
-    method: 'PUT',
+    method: 'PATCH',
     headers: {
       'Content-Type': mimeType || file.type,
     },
@@ -60,6 +60,33 @@ export async function uploadFileToPresignedUrl(
 
   if (!response.ok) {
     throw new Error(`Failed to upload file: ${response.status}`);
+  }
+}
+
+/**
+ * Update file status after upload completion
+ */
+export async function updateFileStatus(
+  accessToken: string,
+  fileId: string
+): Promise<void> {
+  // Use the Studio API to update file status after upload
+  const studioApiUrl = import.meta.env.VITE_STUDIO_API_URL || "https://api.studio.deca-dev.com";
+  const apiUrl = `${studioApiUrl}/files/${fileId}`;
+
+  const response = await fetch(apiUrl, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      status: 'uploaded'
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update file status: ${response.status}`);
   }
 }
 
@@ -78,13 +105,16 @@ export async function uploadFile(
     fileSize: file.size,
   });
 
-  // Step 2: Upload file content to presigned URL
+  // Step 2: Upload file content to presigned URL using PATCH method
   await uploadFileToPresignedUrl(
     uploadResponse.presignedUrl,
     file,
     mimeType
   );
 
-  // Step 3: Return fileId for storage
+  // Step 3: Update file status after upload completion
+  await updateFileStatus(accessToken, uploadResponse.fileId);
+
+  // Step 4: Return fileId for storage
   return uploadResponse.fileId;
 }
