@@ -18,7 +18,7 @@ export const AVAILABLE_AGENTS: Agent[] = [
   },
   {
     id: "coding-agent",
-    name: "Coding Agent", 
+    name: "Coding Agent",
     description: "Expert agent focused on software development and coding tasks",
     deploymentUrl: import.meta.env.VITE_DEPLOYMENT_URL || "http://127.0.0.1:2024"
   },
@@ -75,8 +75,62 @@ export async function fetchAgentsFromAPI(accessToken: string): Promise<Agent[]> 
     }
 
     const data = await response.json();
-    const agents = data["data"]
-    
+    // const agents = data["data"]
+    const agents = [
+      {
+        "id": "682c40880f3d76136f3ed9b3",
+        "org_id": "01haxd218s50f6yy4jf2f92fzf",
+        "workspaceId": "67e61a91a17deff680e63275",
+        "name": "builtin-agent-virtual-persona-generator",
+        "description": "Custom agent for virtual persona generator",
+        "agentType": "built-in",
+        "settings": {
+          "runtime": "langgraph",
+          "systemPrompt": "",
+          "clazz": "deca_agents.virtual_persona_generator_v1.main.CustomAgent"
+        },
+        "parameters": {
+          "customer_segments_file": {
+            "type": "file",
+            "label": "Customer Segments File",
+            "renderType": "file",
+            "mimeType": "application/json",
+            "isMultipleFiles": false
+          },
+          "persona_focus": {
+            "type": "string",
+            "enum": ["comprehensive", "targeted"],
+            "renderType": "select",
+            "default": "comprehensive"
+          },
+          "research_depth": {
+            "type": "string",
+            "enum": ["comprehensive", "targeted"],
+            "renderType": "select",
+            "default": "comprehensive"
+          },
+          "output_format": {
+            "type": "string",
+            "enum": ["json", "xml"],
+            "renderType": "select",
+            "default": "json"
+          },
+          "enable_web_search": {
+            "type": "boolean",
+            "renderType": "switch",
+            "default": true
+          },
+          "max_personas": {
+            "type": "integer",
+            "renderType": "input",
+            "default": 7
+          }
+        }
+      }
+    ]
+
+
+
     // Map the API response to our Agent interface
     // We'll need to adjust this based on the actual API response structure
     if (Array.isArray(agents)) {
@@ -88,7 +142,7 @@ export async function fetchAgentsFromAPI(accessToken: string): Promise<Agent[]> 
         parameters: agent.parameters || undefined,
       }));
     }
-    
+
     return AVAILABLE_AGENTS;
   } catch (error) {
     console.error("Failed to fetch agents from API:", error);
@@ -108,12 +162,12 @@ export function getCurrentAgent(): Agent {
     const urlParams = new URLSearchParams(window.location.search);
     agentFromUrl = urlParams.get('agent');
   }
-  
+
   if (agentFromUrl) {
     const agent = getAgentById(agentFromUrl);
     if (agent) return agent;
   }
-  
+
   // Fallback to environment variable
   const currentId = import.meta.env.VITE_AGENT_ID || "deepagent";
   return getAgentById(currentId) || AVAILABLE_AGENTS[0];
