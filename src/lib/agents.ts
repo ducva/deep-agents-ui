@@ -1,4 +1,5 @@
 import type { Agent } from "@/app/types/types";
+import { getDeployment } from "@/lib/environment/deployments";
 
 // Mock agent configurations for demonstration
 // In a real application, these would likely come from an API or configuration service
@@ -33,13 +34,58 @@ export function getAvailableAgents(): Agent[] {
   return AVAILABLE_AGENTS;
 }
 
+/**
+ * Fetch agents from the API endpoint
+ * GET /v20250505/{workspace_id}/agents
+ */
+export async function fetchAgentsFromAPI(accessToken: string): Promise<Agent[]> {
+  try {
+    const deployment = getDeployment();
+    if (!deployment.deploymentUrl || !deployment.workspaceId) {
+      console.warn("Missing deployment configuration, falling back to hardcoded agents");
+      return AVAILABLE_AGENTS;
+    }
+
+    const apiUrl = `${deployment.deploymentUrl}/v20250505/${deployment.workspaceId}/agents`;
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        'x-auth-scheme': 'langsmith',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const agents = await response.json();
+    
+    // Map the API response to our Agent interface
+    // We'll need to adjust this based on the actual API response structure
+    if (Array.isArray(agents)) {
+      return agents.map((agent: any) => ({
+        id: agent.id || agent.agent_id || agent.name,
+        name: agent.name || agent.display_name || agent.id,
+        description: agent.description || agent.summary || "",
+        deploymentUrl: deployment.deploymentUrl,
+      }));
+    }
+    
+    return AVAILABLE_AGENTS;
+  } catch (error) {
+    console.error("Failed to fetch agents from API:", error);
+    // Fallback to hardcoded agents on error
+    return AVAILABLE_AGENTS;
+  }
+}
+
 export function getAgentById(id: string): Agent | null {
   return AVAILABLE_AGENTS.find(agent => agent.id === id) || null;
 }
 
 export function getCurrentAgent(): Agent {
-  // Check URL parameters first
-  const urlParams = new URLSearchParams(window.location.search);
   // Check URL parameters first (only on client-side)
   let agentFromUrl: string | null = null;
   if (typeof window !== "undefined") {
