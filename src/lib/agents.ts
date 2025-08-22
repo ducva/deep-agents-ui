@@ -118,3 +118,19 @@ export function getCurrentAgent(): Agent {
   const currentId = import.meta.env.VITE_AGENT_ID || "deepagent";
   return getAgentById(currentId) || AVAILABLE_AGENTS[0];
 }
+
+export function getCurrentAgentParameters(): Record<string, any> | null {
+  if (typeof window !== "undefined") {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramsString = urlParams.get('agentParams');
+    if (paramsString) {
+      try {
+        return JSON.parse(paramsString);
+      } catch (error) {
+        console.error('Failed to parse agent parameters:', error);
+        return null;
+      }
+    }
+  }
+  return null;
+}

@@ -14,6 +14,7 @@ import { Message } from "@langchain/langgraph-sdk";
 import { extractStringFromMessageContent } from "../../utils/utils";
 import { Bot, FileText, Link, LoaderCircle, Paperclip, Send, SquarePen, X, History } from "lucide-react";
 import { AgentSelector } from "../AgentSelector/AgentSelector";
+import { AgentIndicator } from "../AgentIndicator/AgentIndicator";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "../UserMenu/UserMenu";
 import { ThreadHistorySidebar } from "../ThreadHistorySidebar/ThreadHistorySidebar";
@@ -21,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { AgentConfirmationDialog } from "../AgentConfirmationDialog/AgentConfirmationDialog";
 import { AIErrorBoundary } from "../AIErrorBoundary/AIErrorBoundary";
 import { ChatMessage } from "../ChatMessage/ChatMessage";
+import { getCurrentAgent } from "@/lib/agents";
 import styles from './ChatInterface.module.scss'
 
 interface ChatInterfaceProps {
@@ -156,7 +158,15 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
         stopStream();
       }
       setIsThreadHistoryOpen(false);
-      onNewThread();
+      
+      // Check if current agent has parameters and ask for them again
+      const currentAgent = getCurrentAgent();
+      if (currentAgent.parameters && Object.keys(currentAgent.parameters).length > 0) {
+        setSelectedAgentForConfirmation(currentAgent);
+        setIsAgentDialogOpen(true);
+      } else {
+        onNewThread();
+      }
     }, [isLoading, stopStream, onNewThread]);
 
     const handleThreadSelect = useCallback(
@@ -178,11 +188,16 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
 
     const handleAgentConfirm = useCallback((parameters?: Record<string, any>) => {
       if (selectedAgentForConfirmation) {
-        // Store the selected agent ID in environment
-        // In a real app, you might need to update server configuration
-        // For now, we'll update the environment variable and reload
+        const currentAgent = getCurrentAgent();
         const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set('agent', selectedAgentForConfirmation.id);
+        
+        // Check if we're switching to a different agent or just configuring the current one
+        const isSwitchingAgent = selectedAgentForConfirmation.id !== currentAgent.id;
+        
+        if (isSwitchingAgent) {
+          // Switch to new agent
+          currentUrl.searchParams.set('agent', selectedAgentForConfirmation.id);
+        }
         
         // Store parameters in URL if provided
         if (parameters && Object.keys(parameters).length > 0) {
@@ -191,11 +206,16 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
           currentUrl.searchParams.delete('agentParams');
         }
         
-        // Clear existing state before switching
+        // Clear existing state before switching/starting new thread
         onNewThread();
         
-        // Reload the page with the new agent parameter
-        window.location.href = currentUrl.toString();
+        if (isSwitchingAgent) {
+          // Reload the page with the new agent parameter
+          window.location.href = currentUrl.toString();
+        } else {
+          // Just update parameters for new thread without page reload
+          window.history.replaceState({}, '', currentUrl.toString());
+        }
       }
       setIsAgentDialogOpen(false);
       setSelectedAgentForConfirmation(null);
@@ -303,6 +323,7 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
           <div className={styles.headerLeft}>
             <Bot className={styles.logo} />
             <h1 className={styles.title}>Deep Agents</h1>
+            <AgentIndicator onAgentSelect={handleAgentSelect} />
           </div>
           <div className={styles.headerRight}>
             <AgentSelector onAgentSelect={handleAgentSelect} />
