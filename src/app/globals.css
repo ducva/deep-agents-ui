@@ -36,41 +36,7 @@
   --accent-foreground: #111827;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* App-specific color variables */
-    --color-primary: #2dd4bf;
-    --color-user-message: #0ea5e9;
-    --color-avatar-bg: #4c1d95;
-    --color-secondary: #2dd4bf;
-    --color-success: #34d399;
-    --color-warning: #fbbf24;
-    --color-error: #f87171;
-    --color-background: #0f0f0f;
-    --color-subagent-hover: #6d28d9;
-    --color-surface: #1a1a1a;
-    --color-border: #2d2d2d;
-    --color-border-light: #232323;
-    --color-text-primary: #f3f4f6;
-    --color-text-secondary: #9ca3af;
-    --color-text-tertiary: #6b7280;
 
-    /* Tailwind/Radix UI component variables for dark mode */
-    --background: #0f0f0f;
-    --foreground: #f3f4f6;
-    --muted: #232323;
-    --muted-foreground: #9ca3af;
-    --primary: #2dd4bf;
-    --primary-foreground: #0f0f0f;
-    --input: #2d2d2d;
-    --ring: #2dd4bf;
-    --destructive: #f87171;
-    --popover: #1a1a1a;
-    --popover-foreground: #f3f4f6;
-    --accent: #232323;
-    --accent-foreground: #f3f4f6;
-  }
-}
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
