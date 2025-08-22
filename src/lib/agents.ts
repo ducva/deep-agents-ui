@@ -60,15 +60,14 @@ export async function fetchAgentsFromAPI(accessToken: string): Promise<Agent[]> 
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const agents = await response.json();
+    const data = await response.json();
+    const agents = data["data"]
     
     // Map the API response to our Agent interface
     // We'll need to adjust this based on the actual API response structure
     if (Array.isArray(agents)) {
       return agents.map((agent: any) => ({
-        id: agent.id || agent.agent_id || agent.name,
-      return agents.map((agent: ApiAgent) => ({
-        id: agent.id || agent.agent_id || agent.name || "",
+        id: agent._id || agent.agent_id || agent.name || "",
         name: agent.name || agent.display_name || agent.id || "",
         description: agent.description || agent.summary || "",
         deploymentUrl: deployment.deploymentUrl,
