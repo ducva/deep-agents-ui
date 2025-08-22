@@ -60,7 +60,7 @@ export async function fetchAgentsFromAPI(accessToken: string): Promise<Agent[]> 
       return AVAILABLE_AGENTS;
     }
 
-    const apiUrl = `${deployment.deploymentUrl}/v20250505/${deployment.workspaceId}/agents`;
+    const apiUrl = `${deployment.deploymentUrl}/v20250505/${deployment.workspaceId}/agents?type=built-in`;
     const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
