@@ -35,10 +35,20 @@ export interface Thread {
   updatedAt: Date;
 }
 
+export interface AgentParameter {
+  type: "string" | "boolean" | "integer" | "file";
+  label?: string;
+  renderType: "input" | "select" | "switch" | "file";
+  enum?: string[];
+  default?: any;
+  mimeType?: string;
+  isMultipleFiles?: boolean;
+}
+
 export interface Agent {
   id: string;
   name: string;
   description: string;
   deploymentUrl?: string;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, AgentParameter>;
 }

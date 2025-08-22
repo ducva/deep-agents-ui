@@ -34,12 +34,41 @@ export const AVAILABLE_AGENTS: Agent[] = [
     description: "Custom agent for virtual persona generator",
     deploymentUrl: import.meta.env.VITE_DEPLOYMENT_URL || "http://127.0.0.1:2024",
     parameters: {
-      customer_segments_file: "data/customer_segments.json",
-      persona_focus: "comprehensive",
-      research_depth: "comprehensive",
-      output_format: "json",
-      enable_web_search: true,
-      max_personas: 7
+      customer_segments_file: {
+        type: "file",
+        label: "Customer Segments File",
+        renderType: "file",
+        mimeType: "application/json",
+        isMultipleFiles: false
+      },
+      persona_focus: {
+        type: "string",
+        enum: ["comprehensive", "targeted"],
+        renderType: "select",
+        default: "comprehensive"
+      },
+      research_depth: {
+        type: "string",
+        enum: ["comprehensive", "targeted"],
+        renderType: "select",
+        default: "comprehensive"
+      },
+      output_format: {
+        type: "string",
+        enum: ["json", "xml"],
+        renderType: "select",
+        default: "json"
+      },
+      enable_web_search: {
+        type: "boolean",
+        renderType: "switch",
+        default: true
+      },
+      max_personas: {
+        type: "integer",
+        renderType: "input",
+        default: 7
+      }
     }
   }
 ];
