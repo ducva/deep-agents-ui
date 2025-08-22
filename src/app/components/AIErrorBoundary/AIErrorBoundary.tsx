@@ -2,7 +2,6 @@ import React from "react";
 import { AlertCircle, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AISDKError } from "ai";
-import styles from "./AIErrorBoundary.module.scss";
 
 interface AIErrorBoundaryProps {
   error: AISDKError | null;
@@ -67,43 +66,71 @@ export const AIErrorBoundary: React.FC<AIErrorBoundaryProps> = ({
   const description = getErrorDescription(error);
   const showRetryButton = canRetry && onRetry && retryCount < maxRetries;
 
+  const getErrorClasses = (severity: string) => {
+    const baseClasses = "border rounded-lg p-4 mb-4";
+    const severityClasses: Record<string, string> = {
+      low: "bg-blue-50 border-blue-200",
+      medium: "bg-yellow-50 border-yellow-200", 
+      high: "bg-red-50 border-red-200"
+    };
+    return `${baseClasses} ${severityClasses[severity] || severityClasses.high}`;
+  };
+
+  const getIconClasses = (severity: string) => {
+    const severityIconClasses: Record<string, string> = {
+      low: "text-blue-600",
+      medium: "text-yellow-600",
+      high: "text-red-600"
+    };
+    return severityIconClasses[severity] || severityIconClasses.high;
+  };
+
+  const getTitleClasses = (severity: string) => {
+    const severityTitleClasses: Record<string, string> = {
+      low: "text-blue-800",
+      medium: "text-yellow-800", 
+      high: "text-red-800"
+    };
+    return `font-semibold text-sm ${severityTitleClasses[severity] || severityTitleClasses.high}`;
+  };
+
   return (
-    <div className={`${styles.errorBoundary} ${styles[severity]}`} role="alert" aria-live="polite">
-      <div className={styles.errorContent}>
-        <div className={styles.errorIcon}>
+    <div className={getErrorClasses(severity)} role="alert" aria-live="polite">
+      <div className="flex items-start gap-3">
+        <div className={`flex-shrink-0 mt-0.5 ${getIconClasses(severity)}`}>
           <AlertCircle size={20} />
         </div>
         
-        <div className={styles.errorDetails}>
-          <div className={styles.errorTitle}>
+        <div className="flex-1 space-y-2">
+          <div className={getTitleClasses(severity)}>
             {error.name || 'Error'}
           </div>
           
-          <div className={styles.errorMessage}>
+          <div className="text-sm text-gray-600">
             {description}
           </div>
           
           {process.env.NODE_ENV === 'development' && error.message && (
-            <details className={styles.errorDebug}>
-              <summary>Technical Details</summary>
-              <pre>{error.message}</pre>
+            <details className="mt-2 text-xs">
+              <summary className="cursor-pointer text-gray-500 hover:text-gray-700">Technical Details</summary>
+              <pre className="mt-1 p-2 bg-gray-100 rounded text-xs overflow-auto font-mono">{error.message}</pre>
             </details>
           )}
           
           {retryCount > 0 && (
-            <div className={styles.retryInfo}>
+            <div className="text-xs text-gray-500">
               Retry attempt {retryCount} of {maxRetries}
             </div>
           )}
         </div>
         
-        <div className={styles.errorActions}>
+        <div className="flex flex-col gap-1 flex-shrink-0">
           {showRetryButton && (
             <Button
               onClick={onRetry}
               variant="outline"
               size="sm"
-              className={styles.retryButton}
+              className="flex items-center gap-1"
             >
               <RefreshCw size={14} />
               Retry
@@ -115,7 +142,7 @@ export const AIErrorBoundary: React.FC<AIErrorBoundaryProps> = ({
               onClick={onDismiss}
               variant="ghost"
               size="sm"
-              className={styles.dismissButton}
+              className="p-1"
             >
               <X size={14} />
             </Button>

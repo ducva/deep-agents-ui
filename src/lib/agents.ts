@@ -103,7 +103,6 @@ export async function fetchAgentsFromAPI(accessToken: string): Promise<Agent[]> 
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // const data = await response.json();
     // const agents = data["data"]
     // TODO: Use data from API response when ready
     const agents = [

@@ -8,7 +8,6 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { MarkdownContent } from "../MarkdownContent/MarkdownContent";
 import type { FileItem } from "../../types/types";
-import styles from "./FileViewDialog.module.scss";
 
 interface FileViewDialogProps {
   file: FileItem;
@@ -86,19 +85,19 @@ export const FileViewDialog = React.memo<FileViewDialogProps>(
 
     return (
       <Dialog open={true} onOpenChange={onClose}>
-        <DialogContent className={styles.dialog}>
+        <DialogContent className="!max-w-[80vw] !w-[900px] !max-h-[80vh] !flex !flex-col !bg-background !p-6">
           <DialogTitle className="sr-only">{file.path}</DialogTitle>
-          <div className={styles.header}>
-            <div className={styles.titleSection}>
-              <FileText className={styles.fileIcon} />
-              <span className={styles.fileName}>{file.path}</span>
+          <div className="flex justify-between items-center gap-4 pb-4 mb-4 border-b border-border">
+            <div className="flex items-center gap-2 min-w-0">
+              <FileText className="w-5 h-5 text-text-secondary flex-shrink-0" />
+              <span className="text-base font-medium text-text-primary overflow-hidden text-ellipsis whitespace-nowrap">{file.path}</span>
             </div>
-            <div className={styles.actions}>
+            <div className="flex gap-1 flex-shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleCopy}
-                className={styles.actionButton}
+                className="flex items-center gap-1 px-2 py-1 mr-1 hover:bg-border-light"
               >
                 <Copy size={16} />
                 Copy
@@ -107,7 +106,7 @@ export const FileViewDialog = React.memo<FileViewDialogProps>(
                 variant="ghost"
                 size="sm"
                 onClick={handleDownload}
-                className={styles.actionButton}
+                className="flex items-center gap-1 px-2 py-1 mr-1 hover:bg-border-light"
               >
                 <Download size={16} />
                 Download
@@ -115,10 +114,10 @@ export const FileViewDialog = React.memo<FileViewDialogProps>(
             </div>
           </div>
 
-          <ScrollArea className={styles.contentArea}>
+          <ScrollArea className="flex-1 max-h-[60vh] overflow-auto bg-surface rounded-md p-4 scrollbar-thin scrollbar-track-border-light scrollbar-thumb-text-tertiary hover:scrollbar-thumb-text-secondary">
             {file.content ? (
               isMarkdown ? (
-                <div className={styles.markdownWrapper}>
+                <div className="p-6 bg-background rounded-md">
                   <MarkdownContent content={file.content} />
                 </div>
               ) : (
@@ -136,8 +135,8 @@ export const FileViewDialog = React.memo<FileViewDialogProps>(
                 </SyntaxHighlighter>
               )
             ) : (
-              <div className={styles.emptyContent}>
-                <p>File is empty</p>
+              <div className="flex items-center justify-center p-12 text-text-tertiary">
+                <p className="m-0 text-sm">File is empty</p>
               </div>
             )}
           </ScrollArea>
