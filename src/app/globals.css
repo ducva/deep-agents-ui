@@ -138,10 +138,10 @@ p {
 a {
   color: var(--color-primary);
   text-decoration: none;
-  transition: opacity 200ms ease;
+  transition: color 200ms ease;
 
   &:hover {
-    opacity: 0.8;
+    color: var(--color-secondary);
   }
 }
 
@@ -168,7 +168,7 @@ pre {
 
   code {
     padding: 0;
-    background-color: transparent;
+    background-color: var(--color-surface);
   }
 }
 

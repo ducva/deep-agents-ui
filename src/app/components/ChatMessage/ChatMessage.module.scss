@@ -57,7 +57,7 @@
 }
 
 .avatarHidden {
-  background-color: transparent !important;
+  background-color: var(--color-background) !important;
   // Keep the same dimensions to maintain spacing/alignment
 }
 
