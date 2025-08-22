@@ -1,5 +1,3 @@
-import { getDeployment } from "./environment/deployments";
-
 interface FileUploadRequest {
   fileName: string;
   mimeType: string;
@@ -13,26 +11,22 @@ interface FileUploadResponse {
 }
 
 /**
- * Get a presigned URL and fileId for file upload
+ * Get a presigned URL and fileId for file upload using Studio API
  */
 export async function getPresignedUrl(
   accessToken: string,
   fileInfo: FileUploadRequest
 ): Promise<FileUploadResponse> {
-  const deployment = getDeployment();
-  
-  if (!deployment.deploymentUrl || !deployment.workspaceId) {
-    throw new Error("Missing deployment configuration for file upload");
-  }
-
-  const apiUrl = `${deployment.deploymentUrl}/v20250505/${deployment.workspaceId}/files/upload`;
+  // Use the new Studio API endpoint for creating file assets
+  // Allow configuration through environment variable for flexibility
+  const studioApiUrl = import.meta.env.VITE_STUDIO_API_URL || "https://api.studio.deca-dev.com";
+  const apiUrl = `${studioApiUrl}/files`;
   
   const response = await fetch(apiUrl, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
-      'x-auth-scheme': 'langsmith',
     },
     body: JSON.stringify({
       fileName: fileInfo.fileName,
@@ -42,7 +36,7 @@ export async function getPresignedUrl(
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to get presigned URL: ${response.status}`);
+    throw new Error(`Failed to create file asset: ${response.status}`);
   }
 
   return response.json();
@@ -70,14 +64,14 @@ export async function uploadFileToPresignedUrl(
 }
 
 /**
- * Complete file upload process: get presigned URL and upload file
+ * Complete file upload process: create file asset, get presigned URL and upload file
  */
 export async function uploadFile(
   accessToken: string,
   file: File,
   mimeType?: string
 ): Promise<string> {
-  // Step 1: Get presigned URL and fileId
+  // Step 1: Create file asset and get presigned URL with fileId from Studio API
   const uploadResponse = await getPresignedUrl(accessToken, {
     fileName: file.name,
     mimeType: mimeType || file.type,
