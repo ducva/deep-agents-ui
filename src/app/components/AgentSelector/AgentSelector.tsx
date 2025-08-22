@@ -17,7 +17,7 @@ interface AgentSelectorProps {
 
 export const AgentSelector: React.FC<AgentSelectorProps> = ({ onAgentSelect }) => {
   const { session } = useAuthContext();
-  const [availableAgents, setAvailableAgents] = useState<Agent[]>(getAvailableAgents());
+  const [availableAgents, setAvailableAgents] = useState<Agent[]>(() => getAvailableAgents());
   const [isLoading, setIsLoading] = useState(false);
   const currentAgent = getCurrentAgent();
 
