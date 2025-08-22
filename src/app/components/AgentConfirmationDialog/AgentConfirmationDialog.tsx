@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import type { Agent, AgentParameter } from "@/app/types/types";
+import { uploadFile } from "@/lib/fileUpload";
+import { useAuthContext } from "@/providers/Auth";
 
 interface AgentConfirmationDialogProps {
   agent: Agent | null;
@@ -34,6 +36,9 @@ export const AgentConfirmationDialog: React.FC<AgentConfirmationDialogProps> = (
   onCancel,
 }) => {
   const [parameters, setParameters] = useState<Record<string, any>>({});
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, string>>({});
+  const { session } = useAuthContext();
 
   // Reset parameters when agent changes or dialog opens
   useEffect(() => {
@@ -75,8 +80,82 @@ export const AgentConfirmationDialog: React.FC<AgentConfirmationDialogProps> = (
     }));
   };
 
-  const handleConfirm = () => {
-    onConfirm(agent?.parameters ? parameters : undefined);
+  const handleConfirm = async () => {
+    if (!session?.accessToken) {
+      console.error("No access token available for file upload");
+      onConfirm(agent?.parameters ? parameters : undefined);
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      const processedParameters: Record<string, any> = {};
+      
+      // Process each parameter, handling file uploads
+      for (const [key, value] of Object.entries(parameters)) {
+        const parameterSchema = agent?.parameters?.[key];
+        
+        if (parameterSchema?.type === "file" && value) {
+          setUploadProgress(prev => ({ ...prev, [key]: "Uploading..." }));
+          
+          if (parameterSchema.isMultipleFiles && Array.isArray(value)) {
+            // Handle multiple files
+            const fileIds: string[] = [];
+            for (const file of value) {
+              if (file instanceof File) {
+                const fileId = await uploadFile(
+                  session.accessToken,
+                  file,
+                  parameterSchema.mimeType
+                );
+                fileIds.push(fileId);
+              }
+            }
+            processedParameters[key] = fileIds;
+          } else if (value instanceof File) {
+            // Handle single file
+            const fileId = await uploadFile(
+              session.accessToken,
+              value,
+              parameterSchema.mimeType
+            );
+            processedParameters[key] = fileId;
+          } else {
+            // Already a fileId (re-upload scenario)
+            processedParameters[key] = value;
+          }
+          
+          setUploadProgress(prev => ({ ...prev, [key]: "Uploaded successfully" }));
+        } else {
+          // Non-file parameters
+          processedParameters[key] = value;
+        }
+      }
+      
+      // Store parameters in localStorage for later use
+      if (agent?.id && Object.keys(processedParameters).length > 0) {
+        const storageKey = `agent_params_${agent.id}`;
+        localStorage.setItem(storageKey, JSON.stringify(processedParameters));
+      }
+      
+      onConfirm(agent?.parameters ? processedParameters : undefined);
+    } catch (error) {
+      console.error("File upload failed:", error);
+      setUploadProgress(prev => {
+        const newProgress = { ...prev };
+        Object.keys(newProgress).forEach(key => {
+          if (newProgress[key] === "Uploading...") {
+            newProgress[key] = "Upload failed";
+          }
+        });
+        return newProgress;
+      });
+    } finally {
+      setIsUploading(false);
+      // Clear progress after a delay
+      setTimeout(() => setUploadProgress({}), 3000);
+    }
   };
 
   const renderParameterInput = (key: string, parameterSchema: AgentParameter) => {
@@ -150,10 +229,32 @@ export const AgentConfirmationDialog: React.FC<AgentConfirmationDialogProps> = (
                 }
               }}
               className="w-full"
+              disabled={isUploading}
             />
             {parameterSchema.mimeType && (
               <p className="text-xs text-muted-foreground">
                 Accepted file type: {parameterSchema.mimeType}
+              </p>
+            )}
+            {uploadProgress[key] && (
+              <p className={`text-xs ${
+                uploadProgress[key] === "Uploaded successfully" 
+                  ? "text-green-600" 
+                  : uploadProgress[key] === "Upload failed"
+                  ? "text-red-600"
+                  : "text-blue-600"
+              }`}>
+                {uploadProgress[key]}
+              </p>
+            )}
+            {value && (
+              <p className="text-xs text-muted-foreground">
+                {parameterSchema.isMultipleFiles && Array.isArray(value)
+                  ? `${value.length} file(s) selected`
+                  : value instanceof File
+                  ? `Selected: ${value.name}`
+                  : `File ID: ${value}`
+                }
               </p>
             )}
           </div>
@@ -243,11 +344,11 @@ export const AgentConfirmationDialog: React.FC<AgentConfirmationDialogProps> = (
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>
+          <Button variant="outline" onClick={onCancel} disabled={isUploading}>
             Cancel
           </Button>
-          <Button onClick={handleConfirm}>
-            Switch Agent
+          <Button onClick={handleConfirm} disabled={isUploading}>
+            {isUploading ? "Uploading..." : "Switch Agent"}
           </Button>
         </DialogFooter>
       </DialogContent>

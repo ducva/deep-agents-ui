@@ -10,6 +10,7 @@ import {
   AISDKError,
   InvalidArgumentError
 } from "ai";
+import { getCurrentAgentParameters } from "@/lib/agents";
 
 type StateType = {
   messages: Message[];
@@ -115,10 +116,24 @@ export function useAIChat(
         const abortController = new AbortController();
         abortControllerRef.current = abortController;
 
+        // Get current agent parameters
+        const agentParameters = getCurrentAgentParameters();
+        
+        // Create the message content, including agent parameters if this is the first message
+        let messageContent = message;
+        if (agentParameters && Object.keys(agentParameters).length > 0) {
+          // Check if this is likely the first message of a new conversation
+          const isFirstMessage = !stream.messages || stream.messages.length === 0;
+          if (isFirstMessage) {
+            // Include agent parameters in the first message
+            messageContent = `${message}\n\n[Agent Parameters: ${JSON.stringify(agentParameters)}]`;
+          }
+        }
+
         const humanMessage: Message = {
           id: uuidv4(),
           type: "human",
-          content: message,
+          content: messageContent,
         };
 
         // Submit through LangGraph stream (maintaining existing functionality)

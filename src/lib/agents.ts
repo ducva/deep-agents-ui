@@ -152,12 +152,27 @@ export function getCurrentAgentParameters(): Record<string, any> | null {
   if (typeof window !== "undefined") {
     const urlParams = new URLSearchParams(window.location.search);
     const paramsString = urlParams.get('agentParams');
+    
+    // Try URL parameters first
     if (paramsString) {
       try {
         return JSON.parse(paramsString);
       } catch (error) {
-        console.error('Failed to parse agent parameters:', error);
-        return null;
+        console.error('Failed to parse agent parameters from URL:', error);
+      }
+    }
+    
+    // Fallback to localStorage
+    const currentAgent = getCurrentAgent();
+    if (currentAgent?.id) {
+      const storageKey = `agent_params_${currentAgent.id}`;
+      const storedParams = localStorage.getItem(storageKey);
+      if (storedParams) {
+        try {
+          return JSON.parse(storedParams);
+        } catch (error) {
+          console.error('Failed to parse agent parameters from localStorage:', error);
+        }
       }
     }
   }

@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { TodoItem } from "../types/types";
 import { createClient } from "@/lib/client";
 import { useAuthContext } from "@/providers/Auth";
+import { getCurrentAgentParameters } from "@/lib/agents";
 
 // Re-export the enhanced AI SDK version
 export { useAIChat } from "./useAIChat";
@@ -63,10 +64,24 @@ export function useChat(
 
   const sendMessage = useCallback(
     (message: string) => {
+      // Get current agent parameters
+      const agentParameters = getCurrentAgentParameters();
+      
+      // Create the message content, including agent parameters if this is the first message
+      let messageContent = message;
+      if (agentParameters && Object.keys(agentParameters).length > 0) {
+        // Check if this is likely the first message of a new conversation
+        const isFirstMessage = !stream.messages || stream.messages.length === 0;
+        if (isFirstMessage) {
+          // Include agent parameters in the first message
+          messageContent = `${message}\n\n[Agent Parameters: ${JSON.stringify(agentParameters)}]`;
+        }
+      }
+      
       const humanMessage: Message = {
         id: uuidv4(),
         type: "human",
-        content: message,
+        content: messageContent,
       };
       stream.submit(
         { messages: [humanMessage] },
