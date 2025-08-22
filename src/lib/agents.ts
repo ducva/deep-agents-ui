@@ -67,7 +67,9 @@ export async function fetchAgentsFromAPI(accessToken: string): Promise<Agent[]> 
     if (Array.isArray(agents)) {
       return agents.map((agent: any) => ({
         id: agent.id || agent.agent_id || agent.name,
-        name: agent.name || agent.display_name || agent.id,
+      return agents.map((agent: ApiAgent) => ({
+        id: agent.id || agent.agent_id || agent.name || "",
+        name: agent.name || agent.display_name || agent.id || "",
         description: agent.description || agent.summary || "",
         deploymentUrl: deployment.deploymentUrl,
       }));
