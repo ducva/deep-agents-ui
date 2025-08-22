@@ -176,13 +176,20 @@ export const ChatInterface = React.memo<ChatInterfaceProps>(
       setIsAgentDialogOpen(true);
     }, []);
 
-    const handleAgentConfirm = useCallback(() => {
+    const handleAgentConfirm = useCallback((parameters?: Record<string, any>) => {
       if (selectedAgentForConfirmation) {
         // Store the selected agent ID in environment
         // In a real app, you might need to update server configuration
         // For now, we'll update the environment variable and reload
         const currentUrl = new URL(window.location.href);
         currentUrl.searchParams.set('agent', selectedAgentForConfirmation.id);
+        
+        // Store parameters in URL if provided
+        if (parameters && Object.keys(parameters).length > 0) {
+          currentUrl.searchParams.set('agentParams', JSON.stringify(parameters));
+        } else {
+          currentUrl.searchParams.delete('agentParams');
+        }
         
         // Clear existing state before switching
         onNewThread();

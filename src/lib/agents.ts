@@ -27,6 +27,20 @@ export const AVAILABLE_AGENTS: Agent[] = [
     name: "Analysis Agent",
     description: "Data analysis and insights specialist agent",
     deploymentUrl: import.meta.env.VITE_DEPLOYMENT_URL || "http://127.0.0.1:2024"
+  },
+  {
+    id: "builtin-agent-virtual-persona-generator",
+    name: "Virtual Persona Generator",
+    description: "Custom agent for virtual persona generator",
+    deploymentUrl: import.meta.env.VITE_DEPLOYMENT_URL || "http://127.0.0.1:2024",
+    parameters: {
+      customer_segments_file: "data/customer_segments.json",
+      persona_focus: "comprehensive",
+      research_depth: "comprehensive",
+      output_format: "json",
+      enable_web_search: true,
+      max_personas: 7
+    }
   }
 ];
 
@@ -71,6 +85,7 @@ export async function fetchAgentsFromAPI(accessToken: string): Promise<Agent[]> 
         name: agent.name || agent.display_name || agent.id || "",
         description: agent.description || agent.summary || "",
         deploymentUrl: deployment.deploymentUrl,
+        parameters: agent.parameters || undefined,
       }));
     }
     

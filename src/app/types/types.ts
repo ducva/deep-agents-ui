@@ -40,4 +40,5 @@ export interface Agent {
   name: string;
   description: string;
   deploymentUrl?: string;
+  parameters?: Record<string, any>;
 }
