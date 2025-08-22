@@ -1,120 +1,122 @@
 interface FileUploadRequest {
-  fileName: string;
-  mimeType: string;
-  fileSize: number;
+	fileName: string;
+	mimeType: string;
+	fileSize: number;
 }
 
 interface FileUploadResponse {
-  fileId: string;
-  presignedUrl: string;
-  uploadUrl?: string;
+	fileId: string;
+	uploadUrl: string;
 }
 
 /**
  * Get a presigned URL and fileId for file upload using Studio API
  */
 export async function getPresignedUrl(
-  accessToken: string,
-  fileInfo: FileUploadRequest
+	accessToken: string,
+	workspaceId: string,
+	fileInfo: FileUploadRequest,
 ): Promise<FileUploadResponse> {
-  // Use the new Studio API endpoint for creating file assets
-  // Allow configuration through environment variable for flexibility
-  const studioApiUrl = import.meta.env.VITE_STUDIO_API_URL || "https://api.studio.deca-dev.com";
-  const apiUrl = `${studioApiUrl}/files`;
-  
-  const response = await fetch(apiUrl, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      fileName: fileInfo.fileName,
-      mimeType: fileInfo.mimeType,
-      fileSize: fileInfo.fileSize,
-    }),
-  });
+	// Use the new Studio API endpoint for creating file assets
+	// Allow configuration through environment variable for flexibility
+	const studioApiUrl = import.meta.env.VITE_AI_STUDIO_URL;
+	const apiUrl = `${studioApiUrl}/${workspaceId}/files`;
 
-  if (!response.ok) {
-    throw new Error(`Failed to create file asset: ${response.status}`);
-  }
+	const response = await fetch(apiUrl, {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${accessToken}`,
+			"Content-Type": "application/json",
+			"x-org-id": "01haxd218s50f6yy4jf2f92fzf",
+		},
+		body: JSON.stringify({
+			resource: "prompt",
+			name: `${Date.now()}_${fileInfo.fileName}`,
+			mimeType: fileInfo.mimeType,
+			size: fileInfo.fileSize,
+			acl: "private",
+		}),
+	});
 
-  return response.json();
+	if (!response.ok) {
+		throw new Error(`Failed to create file asset: ${response.status}`);
+	}
+
+	return response.json();
 }
 
 /**
  * Upload file content to the presigned URL
  */
 export async function uploadFileToPresignedUrl(
-  presignedUrl: string,
-  file: File,
-  mimeType?: string
+	presignedUrl: string,
+	file: File,
+	mimeType?: string,
 ): Promise<void> {
-  const response = await fetch(presignedUrl, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': mimeType || file.type,
-    },
-    body: file,
-  });
+	const response = await fetch(presignedUrl, {
+		method: "PATCH",
+		mode: "cors",
+		headers: {
+			"Content-Type": mimeType || file.type,
+		},
+		body: file,
+	});
 
-  if (!response.ok) {
-    throw new Error(`Failed to upload file: ${response.status}`);
-  }
+	if (!response.ok) {
+		throw new Error(`Failed to upload file: ${response.status}`);
+	}
 }
 
 /**
  * Update file status after upload completion
  */
 export async function updateFileStatus(
-  accessToken: string,
-  fileId: string
+	accessToken: string,
+	fileId: string,
 ): Promise<void> {
-  // Use the Studio API to update file status after upload
-  const studioApiUrl = import.meta.env.VITE_STUDIO_API_URL || "https://api.studio.deca-dev.com";
-  const apiUrl = `${studioApiUrl}/files/${fileId}`;
+	// Use the Studio API to update file status after upload
+	const studioApiUrl =
+		import.meta.env.VITE_STUDIO_API_URL || "https://api.studio.deca-dev.com";
+	const apiUrl = `${studioApiUrl}/files/${fileId}`;
 
-  const response = await fetch(apiUrl, {
-    method: 'PATCH',
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      status: 'uploaded'
-    }),
-  });
+	const response = await fetch(apiUrl, {
+		method: "PATCH",
+		headers: {
+			Authorization: `Bearer ${accessToken}`,
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			status: "uploaded",
+		}),
+	});
 
-  if (!response.ok) {
-    throw new Error(`Failed to update file status: ${response.status}`);
-  }
+	if (!response.ok) {
+		throw new Error(`Failed to update file status: ${response.status}`);
+	}
 }
 
 /**
  * Complete file upload process: create file asset, get presigned URL and upload file
  */
 export async function uploadFile(
-  accessToken: string,
-  file: File,
-  mimeType?: string
+	accessToken: string,
+	workspaceId: string,
+	file: File,
+	mimeType?: string,
 ): Promise<string> {
-  // Step 1: Create file asset and get presigned URL with fileId from Studio API
-  const uploadResponse = await getPresignedUrl(accessToken, {
-    fileName: file.name,
-    mimeType: mimeType || file.type,
-    fileSize: file.size,
-  });
+	// Step 1: Create file asset and get presigned URL with fileId from Studio API
+	const uploadResponse = await getPresignedUrl(accessToken, workspaceId, {
+		fileName: file.name,
+		mimeType: mimeType || file.type,
+		fileSize: file.size,
+	});
 
-  // Step 2: Upload file content to presigned URL using PATCH method
-  await uploadFileToPresignedUrl(
-    uploadResponse.presignedUrl,
-    file,
-    mimeType
-  );
+	// Step 2: Upload file content to presigned URL using PATCH method
+	await uploadFileToPresignedUrl(uploadResponse.uploadUrl, file, mimeType);
 
-  // Step 3: Update file status after upload completion
-  await updateFileStatus(accessToken, uploadResponse.fileId);
+	// Step 3: Update file status after upload completion
+	await updateFileStatus(accessToken, uploadResponse.fileId);
 
-  // Step 4: Return fileId for storage
-  return uploadResponse.fileId;
+	// Step 4: Return fileId for storage
+	return uploadResponse.fileId;
 }

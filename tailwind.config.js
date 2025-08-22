@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#1c3c3c',
+        primary: '#d0ccec',
         'user-message': '#076699',
         'avatar-bg': '#ebe8fe',
         secondary: '#1c3c3c',
@@ -88,4 +88,4 @@ export default {
   plugins: [
     require('tailwind-scrollbar')({ nocompatible: true }),
   ],
-}
+};

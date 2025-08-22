@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import type React from "react";
+import { useState, useEffect } from "react";
 import { Bot } from "lucide-react";
 import {
   Dialog,
@@ -106,6 +107,7 @@ export const AgentConfirmationDialog: React.FC<AgentConfirmationDialogProps> = (
               if (file instanceof File) {
                 const fileId = await uploadFile(
                   session.accessToken,
+                  import.meta.env.VITE_WORKSPACE_ID,
                   file,
                   parameterSchema.mimeType
                 );
@@ -117,6 +119,7 @@ export const AgentConfirmationDialog: React.FC<AgentConfirmationDialogProps> = (
             // Handle single file
             const fileId = await uploadFile(
               session.accessToken,
+              import.meta.env.VITE_WORKSPACE_ID,
               value,
               parameterSchema.mimeType
             );

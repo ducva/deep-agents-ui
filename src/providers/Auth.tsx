@@ -2,11 +2,11 @@
 import {
   createContext,
   useContext,
-  ReactNode,
+  type ReactNode,
   useState,
   useEffect,
 } from "react";
-import { Auth0Provider, useAuth0, User } from "@auth0/auth0-react";
+import { Auth0Provider, useAuth0, type User } from "@auth0/auth0-react";
 
 interface AuthSession {
   accessToken: string;
@@ -52,6 +52,7 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
         try {
           // Try to get Auth0 token first
           const token = await getAccessTokenSilently();
+          console.log("Auth0 token acquired:", token);
           setSession({
             accessToken: token,
             user: user || undefined,
