@@ -103,7 +103,7 @@ export async function fetchAgentsFromAPI(accessToken: string): Promise<Agent[]> 
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
+    await response.json();
     // const agents = data["data"]
     const agents = [
       {
