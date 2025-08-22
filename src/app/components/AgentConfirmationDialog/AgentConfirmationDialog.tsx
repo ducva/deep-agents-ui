@@ -96,7 +96,7 @@ export const AgentConfirmationDialog: React.FC<AgentConfirmationDialogProps> = (
         <Input
           id={key}
           type="text"
-          value={parameters[key] || value}
+          value={parameters[key] ?? value}
           onChange={(e) => handleParameterChange(key, e.target.value)}
           className="w-full"
           placeholder={`Enter ${key.replace(/_/g, ' ')}`}
