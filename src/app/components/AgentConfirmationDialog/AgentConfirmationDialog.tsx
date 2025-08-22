@@ -110,8 +110,11 @@ export const AgentConfirmationDialog: React.FC<AgentConfirmationDialogProps> = (
   const hasParameters = agent.parameters && Object.keys(agent.parameters).length > 0;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent className={`sm:max-w-[500px] ${hasParameters ? 'max-h-[80vh] overflow-y-auto' : ''}`}>
+    <Dialog open={isOpen}>
+      <DialogContent 
+        className={`sm:max-w-[500px] ${hasParameters ? 'max-h-[80vh] overflow-y-auto' : ''}`}
+        onInteractOutside={(event) => event.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Bot className="h-5 w-5" />
